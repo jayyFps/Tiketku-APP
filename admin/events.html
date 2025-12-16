@@ -249,11 +249,10 @@
                 const response = await fetchWithAdminAuth(url, {
                     method: method,
                     headers: {
-                        // 'Content-Type': 'multipart/form-data' // DO NOT SET THIS
-                        // fetchWithAdminAuth sets Authorization, but we might need to override headers
+                        'Content-Type': null // Explicitly set to null so admin.js removes it (letting browser set multipart/form-data)
                     },
                     body: formData
-                }, true); // Add flag to fetchWithAdminAuth to skip default JSON headers
+                });
 
                 const data = await response.json();
 
