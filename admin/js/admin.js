@@ -1,5 +1,5 @@
 // Admin API helpers
-const ADMIN_API_URL = 'http://localhost:3000/api';
+const ADMIN_API_URL = '/api';
 
 // Check admin authentication
 function isAdminAuthenticated() {
