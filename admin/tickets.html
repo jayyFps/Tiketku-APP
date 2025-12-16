@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Tickets - TiketKu Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/admin/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">🎟️ TiketKu Admin</div>
+
+            <ul class="admin-nav">
+                <li><a href="/admin/dashboard.html" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="/admin/events.html" data-page="events">🎫 Manage Events</a></li>
+                <li><a href="/admin/tickets.html" data-page="tickets" class="active">📋 All Tickets</a></li>
+                <li><a href="/admin/scanner.html" data-page="scanner">📱 Scan Tickets</a></li>
+                <li><a href="#" onclick="adminLogout()" style="color: var(--admin-danger);">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>All Tickets</h1>
+                <div class="admin-header-actions">
+                    <select class="form-select" id="statusFilter" onchange="filterTickets()">
+                        <option value="all">All Status</option>
+                        <option value="unused">Active</option>
+                        <option value="used">Used</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tickets Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Barcode</th>
+                            <th>Event</th>
+                            <th>Buyer</th>
+                            <th>Email</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Purchase Date</th>
+                            <th>Used At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTable">
+                        <tr>
+                            <td colspan="9" style="text-align: center;">
+                                <div class="spinner" style="margin: 1rem auto;"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        if (!requireAdminAuth()) { }
+
+        let allTickets = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setActiveNav('tickets');
+            loadTickets();
+        });
+
+        async function loadTickets() {
+            try {
+                const response = await fetchWithAdminAuth('/api/tickets/all');
+                const data = await response.json();
+
+                allTickets = data.tickets || [];
+                displayTickets(allTickets);
+            } catch (error) {
+                console.error('Error loading tickets:', error);
+            }
+        }
+
+        function filterTickets() {
+            const filter = document.getElementById('statusFilter').value;
+
+            if (filter === 'all') {
+                displayTickets(allTickets);
+            } else {
+                const filtered = allTickets.filter(t => t.status === filter);
+                displayTickets(filtered);
+            }
+        }
+
+        function displayTickets(tickets) {
+            const tbody = document.getElementById('ticketsTable');
+
+            if (!tickets || tickets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No tickets found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = tickets.map(ticket => `
+        <tr>
+          <td style="font-family: monospace; font-size: 0.85rem;">${ticket.barcode}</td>
+          <td>${ticket.event_name}</td>
+          <td>${ticket.username}</td>
+          <td style="font-size: 0.85rem;">${ticket.email}</td>
+          <td>${ticket.quantity}</td>
+          <td>Rp ${formatPrice(ticket.total_price)}</td>
+          <td>
+            <span class="badge ${ticket.status === 'used' ? 'badge-error' : 'badge-success'}">
+              ${ticket.status === 'used' ? 'Used' : 'Active'}
+            </span>
+          </td>
+          <td>${formatDateTime(ticket.purchase_date)}</td>
+          <td>${ticket.used_at ? formatDateTime(ticket.used_at) : '-'}</td>
+        </tr>
+      `).join('');
+        }
+    </script>
+</body>
+
+</html>

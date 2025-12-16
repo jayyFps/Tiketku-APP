@@ -1,0 +1,334 @@
+:root {
+    /* Admin Color Scheme */
+    --admin-primary: #6366f1;
+    --admin-secondary: #8b5cf6;
+    --admin-accent: #ec4899;
+    --admin-success: #10b981;
+    --admin-warning: #f59e0b;
+    --admin-danger: #ef4444;
+
+    --admin-bg: #0f172a;
+    --admin-sidebar: #1e293b;
+    --admin-card: #1e293b;
+    --admin-hover: #334155;
+
+    --admin-text: #f1f5f9;
+    --admin-text-muted: #94a3b8;
+    --admin-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Admin Layout */
+.admin-container {
+    display: flex;
+    min-height: 100vh;
+    background: var(--admin-bg);
+}
+
+.admin-sidebar {
+    width: 250px;
+    background: var(--admin-sidebar);
+    padding: 2rem 1rem;
+    border-right: 1px solid var(--admin-border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.admin-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--admin-primary);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.admin-nav {
+    list-style: none;
+}
+
+.admin-nav li {
+    margin-bottom: 0.5rem;
+}
+
+.admin-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--admin-text-muted);
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+    background: var(--admin-hover);
+    color: var(--admin-text);
+}
+
+.admin-nav a.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--admin-primary);
+}
+
+.admin-main {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.admin-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-header h1 {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.admin-header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--admin-card);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    border: 1px solid var(--admin-border);
+    transition: transform 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-card-icon.primary {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.stat-card-icon.success {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.stat-card-icon.warning {
+    background: rgba(245, 158, 11, 0.2);
+}
+
+.stat-card-icon.danger {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--admin-text);
+}
+
+.stat-label {
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+}
+
+/* Tables */
+.data-table {
+    width: 100%;
+    background: var(--admin-card);
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid var(--admin-border);
+}
+
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: var(--admin-hover);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--admin-text);
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text-muted);
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr {
+    transition: background 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Action Buttons */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.btn-icon.edit {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--admin-primary);
+}
+
+.btn-icon.edit:hover {
+    background: rgba(99, 102, 241, 0.3);
+}
+
+.btn-icon.delete {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--admin-danger);
+}
+
+.btn-icon.delete:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* Scanner */
+.scanner-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.scanner-video {
+    width: 100%;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    background: black;
+}
+
+.scan-result {
+    padding: 2rem;
+    border-radius: 1rem;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.scan-result.valid {
+    background: rgba(16, 185, 129, 0.2);
+    border: 2px solid var(--admin-success);
+}
+
+.scan-result.invalid {
+    background: rgba(239, 68, 68, 0.2);
+    border: 2px solid var(--admin-danger);
+}
+
+.scan-result h2 {
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .admin-container {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+
+    .admin-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .admin-nav li {
+        margin: 0;
+    }
+}
+
+/* Login Page */
+.admin-login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 2rem;
+}
+
+.admin-login-card {
+    background: var(--admin-card);
+    border-radius: 1.5rem;
+    padding: 3rem;
+    max-width: 400px;
+    width: 100%;
+    border: 1px solid var(--admin-border);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.admin-login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.admin-login-logo h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--admin-primary), var(--admin-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.admin-login-logo p {
+    color: var(--admin-text-muted);
+    margin-top: 0.5rem;
+}

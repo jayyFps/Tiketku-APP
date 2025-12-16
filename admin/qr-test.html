@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #qrcode {
+            margin: 20px 0;
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .ticket-code {
+            font-family: monospace;
+            font-size: 16px;
+            color: #666;
+            margin-top: 15px;
+        }
+
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>✅ QR Code Generation Test</h1>
+        <p>Testing QR code generation for ticket platform</p>
+        <div id="qrcode"></div>
+        <div class="ticket-code">Ticket Code: <strong>TKT1765910875613DP7BPB</strong></div>
+        <div class="success">✓ QR Code generated successfully using qrcode library!</div>
+    </div>
+
+    <script>
+        // Simple QR code generation using server API
+        fetch('/api/tickets/barcode/TKT1765910875613DP7BPB', {
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.barcodeImage) {
+                    const img = document.createElement('img');
+                    img.src = data.barcodeImage;
+                    img.alt = 'QR Code';
+                    img.style.maxWidth = '100%';
+                    img.style.borderRadius = '8px';
+                    document.getElementById('qrcode').appendChild(img);
+                }
+            })
+            .catch(err => {
+                document.getElementById('qrcode').innerHTML =
+                    '<p style="color: red;">Error: Please login as admin first</p>' +
+                    '<p><a href="/admin">Go to Admin Login</a></p>';
+            });
+    </script>
+</body>
+
+</html>

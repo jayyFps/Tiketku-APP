@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - TiketKu</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/admin/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-login-container">
+        <div class="admin-login-card">
+            <div class="admin-login-logo">
+                <h1>🎟️ TiketKu Admin</h1>
+                <p>Silakan login untuk melanjutkan</p>
+            </div>
+
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="adminUsername" placeholder="Masukkan username" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="adminPassword" placeholder="Masukkan password"
+                        required>
+                </div>
+
+                <div id="loginError" class="alert alert-error hidden"></div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Login
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/" style="color: var(--admin-text-muted); font-size: 0.9rem;">
+                    ← Kembali ke Website
+                </a>
+            </div>
+
+            <div style="margin-top: 2rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem;">
+                <p style="font-size: 0.85rem; color: var(--admin-text-muted); text-align: center; margin: 0;">
+                    <strong>Demo Credentials:</strong><br>
+                    Username: admin<br>
+                    Password: admin123
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        // Check if already logged in
+        if (localStorage.getItem('adminToken')) {
+            window.location.href = '/admin/dashboard.html';
+        }
+
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const errorEl = document.getElementById('loginError');
+
+            errorEl.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/auth/admin-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save admin token
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminUser', JSON.stringify(data.admin));
+
+                    // Redirect to dashboard
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    errorEl.textContent = data.error || 'Login failed';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorEl.textContent = 'Network error. Please try again.';
+                errorEl.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Events - TiketKu Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/admin/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">🎟️ TiketKu Admin</div>
+
+            <ul class="admin-nav">
+                <li><a href="/admin/dashboard.html" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="/admin/events.html" data-page="events" class="active">🎫 Manage Events</a></li>
+                <li><a href="/admin/tickets.html" data-page="tickets">📋 All Tickets</a></li>
+                <li><a href="/admin/scanner.html" data-page="scanner">📱 Scan Tickets</a></li>
+                <li><a href="#" onclick="adminLogout()" style="color: var(--admin-danger);">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>Manage Events</h1>
+                <div class="admin-header-actions">
+                    <button class="btn btn-primary" onclick="openAddEventModal()">+ Add Event</button>
+                </div>
+            </div>
+
+            <!-- Events Table -->
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Date</th>
+                            <th>Location</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsTable">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">
+                                <div class="spinner" style="margin: 1rem auto;"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Event</h3>
+                <button class="modal-close" onclick="closeModal('eventModal')">&times;</button>
+            </div>
+
+            <form id="eventForm" onsubmit="handleEventSubmit(event)">
+                <input type="hidden" id="eventId">
+
+                <div class="form-group">
+                    <label class="form-label">Event Name*</label>
+                    <input type="text" class="form-input" id="eventName" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="eventDescription" rows="3"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Date*</label>
+                        <input type="date" class="form-input" id="eventDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Location*</label>
+                        <input type="text" class="form-input" id="eventLocation" required>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Price (Rp)*</label>
+                        <input type="number" class="form-input" id="eventPrice" required min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Stock*</label>
+                        <input type="number" class="form-input" id="eventStock" required min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Event Image</label>
+                    <input type="file" class="form-input" id="eventImage" accept="image/*"
+                        onchange="previewImage(this)">
+                    <input type="hidden" id="eventImageUrlHidden">
+                    <div id="imagePreviewContainer" style="margin-top: 10px; display: none;">
+                        <img id="imagePreview" src="" alt="Preview"
+                            style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                    </div>
+                </div>
+
+                <div id="eventError" class="alert alert-error hidden"></div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Event</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('eventModal')"
+                        style="flex: 1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        if (!requireAdminAuth()) { }
+
+        let currentEditId = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setActiveNav('events');
+            loadEvents();
+        });
+
+        async function loadEvents() {
+            try {
+                // Use managed endpoint with auth to see only my events
+                const response = await fetchWithAdminAuth('/api/events/managed');
+                const data = await response.json();
+
+                const tbody = document.getElementById('eventsTable');
+
+                if (!data.events || data.events.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No events yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.events.map(event => `
+          <tr>
+            <td><strong>${event.name}</strong></td>
+            <td>${formatDate(event.date)}</td>
+            <td>${event.location}</td>
+            <td>Rp ${formatPrice(event.price)}</td>
+            <td>
+              <span class="badge ${event.stock > 100 ? 'badge-success' : event.stock > 0 ? 'badge-warning' : 'badge-error'}">
+                ${event.stock} left
+              </span>
+            </td>
+            <td>
+              <div class="table-actions">
+                <button class="btn-icon edit" onclick="editEvent(${event.id})" title="Edit">✏️</button>
+                <button class="btn-icon delete" onclick="deleteEvent(${event.id}, '${event.name}')" title="Delete">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        function openAddEventModal() {
+            currentEditId = null;
+            document.getElementById('modalTitle').textContent = 'Add Event';
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('eventImageUrlHidden').value = '';
+            openModal('eventModal');
+        }
+
+        async function editEvent(id) {
+            try {
+                const response = await fetch(`/api/events/${id}`);
+                const data = await response.json();
+
+                if (data.event) {
+                    currentEditId = id;
+                    const event = data.event;
+
+                    document.getElementById('modalTitle').textContent = 'Edit Event';
+                    document.getElementById('eventId').value = event.id;
+                    document.getElementById('eventName').value = event.name;
+                    document.getElementById('eventDescription').value = event.description || '';
+                    document.getElementById('eventDate').value = event.date;
+                    document.getElementById('eventLocation').value = event.location;
+                    document.getElementById('eventPrice').value = event.price;
+                    document.getElementById('eventStock').value = event.stock;
+                    document.getElementById('eventImageUrlHidden').value = event.image_url || '';
+
+                    if (event.image_url) {
+                        document.getElementById('imagePreview').src = event.image_url;
+                        document.getElementById('imagePreviewContainer').style.display = 'block';
+                    } else {
+                        document.getElementById('imagePreviewContainer').style.display = 'none';
+                    }
+
+                    openModal('eventModal');
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+                showNotification('Failed to load event', 'error');
+            }
+        }
+
+        async function handleEventSubmit(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('eventName').value);
+            formData.append('description', document.getElementById('eventDescription').value);
+            formData.append('date', document.getElementById('eventDate').value);
+            formData.append('location', document.getElementById('eventLocation').value);
+            formData.append('price', document.getElementById('eventPrice').value);
+            formData.append('stock', document.getElementById('eventStock').value);
+
+            const imageFile = document.getElementById('eventImage').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            } else {
+                // Keep existing URL if no new file
+                formData.append('image_url', document.getElementById('eventImageUrlHidden').value);
+            }
+
+            const errorEl = document.getElementById('eventError');
+            errorEl.classList.add('hidden');
+
+            try {
+                const url = currentEditId ? `/api/events/${currentEditId}` : '/api/events';
+                const method = currentEditId ? 'PUT' : 'POST';
+
+                // Note: Don't set Content-Type header manually for FormData, fetch does it automatically with boundary
+
+                const response = await fetchWithAdminAuth(url, {
+                    method: method,
+                    headers: {
+                        // 'Content-Type': 'multipart/form-data' // DO NOT SET THIS
+                        // fetchWithAdminAuth sets Authorization, but we might need to override headers
+                    },
+                    body: formData
+                }, true); // Add flag to fetchWithAdminAuth to skip default JSON headers
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification(currentEditId ? 'Event updated' : 'Event created', 'success');
+                    closeModal('eventModal');
+                    await loadEvents();
+                } else {
+                    errorEl.textContent = data.error || 'Failed to save event';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error saving event:', error);
+                errorEl.textContent = 'Network error';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function deleteEvent(id, name) {
+            if (!confirm(`Are you sure you want to delete "${name}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetchWithAdminAuth(`/api/events/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showNotification('Event deleted', 'success');
+                    await loadEvents();
+                } else {
+                    showNotification('Failed to delete event', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                showNotification('Network error', 'error');
+            }
+        }
+
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const container = document.getElementById('imagePreviewContainer');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    container.style.display = 'block';
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+
+</html>

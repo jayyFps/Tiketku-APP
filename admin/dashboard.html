@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TiketKu</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/admin/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">🎟️ TiketKu Admin</div>
+
+            <ul class="admin-nav">
+                <li><a href="/admin/dashboard.html" data-page="dashboard" class="active">📊 Dashboard</a></li>
+                <li><a href="/admin/events.html" data-page="events">🎫 Manage Events</a></li>
+                <li><a href="/admin/tickets.html" data-page="tickets">📋 All Tickets</a></li>
+                <li><a href="/admin/scanner.html" data-page="scanner">📱 Scan Tickets</a></li>
+                <li><a href="#" onclick="adminLogout()" style="color: var(--admin-danger);">🚪 Logout</a></li>
+            </ul>
+
+            <div style="margin-top: 2rem; padding: 1rem; background: rgba(99, 102, 241, 0.1); border-radius: 0.5rem;">
+                <p style="font-size: 0.85rem; color: var(--admin-text-muted); margin: 0;">
+                    <strong id="adminUsername"></strong><br>
+                    <span style="font-size: 0.75rem;">Admin Panel</span>
+                </p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>Dashboard</h1>
+                <div class="admin-header-actions">
+                    <a href="/" class="btn btn-ghost">View Website</a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Recent Tickets -->
+            <h2 style="margin-bottom: 1rem;">Tiket Terbaru</h2>
+            <div class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Barcode</th>
+                            <th>Event</th>
+                            <th>Pembeli</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentTickets">
+                        <tr>
+                            <td colspan="7" style="text-align: center;">
+                                <div class="spinner" style="margin: 1rem auto;"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        // Require auth
+        if (!requireAdminAuth()) {
+            // Will redirect in requireAdminAuth
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Set admin username
+            const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+            document.getElementById('adminUsername').textContent = adminUser.username || 'Admin';
+
+            setActiveNav('dashboard');
+            await loadDashboardData();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Load stats
+                const statsResponse = await fetchWithAdminAuth('/api/tickets/stats');
+                const statsData = await statsResponse.json();
+
+                displayStats(statsData.stats);
+
+                // Load recent tickets
+                const ticketsResponse = await fetchWithAdminAuth('/api/tickets/all');
+                const ticketsData = await ticketsResponse.json();
+
+                displayRecentTickets(ticketsData.tickets.slice(0, 10));
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        function displayStats(stats) {
+            const grid = document.getElementById('statsGrid');
+
+            grid.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div>
+              <p class="stat-label">Total Penjualan</p>
+              <p class="stat-value">${stats.total_tickets || 0}</p>
+            </div>
+            <div class="stat-card-icon primary">🎫</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div>
+              <p class="stat-label">Total Tiket Terjual</p>
+              <p class="stat-value">${stats.total_quantity || 0}</p>
+            </div>
+            <div class="stat-card-icon success">✓</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div>
+              <p class="stat-label">Tiket Digunakan</p>
+              <p class="stat-value">${stats.used_tickets || 0}</p>
+            </div>
+            <div class="stat-card-icon warning">📊</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-card-header">
+            <div>
+              <p class="stat-label">Total Revenue</p>
+              <p class="stat-value" style="font-size: 1.5rem;">Rp ${formatPrice(stats.total_revenue || 0)}</p>
+            </div>
+            <div class="stat-card-icon danger">💰</div>
+          </div>
+        </div>
+      `;
+        }
+
+        function displayRecentTickets(tickets) {
+            const tbody = document.getElementById('recentTickets');
+
+            if (!tickets || tickets.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Belum ada tiket terjual</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = tickets.map(ticket => `
+        <tr>
+          <td style="font-family: monospace; font-size: 0.85rem;">${ticket.barcode}</td>
+          <td>${ticket.event_name}</td>
+          <td>${ticket.username}</td>
+          <td>${ticket.quantity}</td>
+          <td>Rp ${formatPrice(ticket.total_price)}</td>
+          <td>
+            <span class="badge ${ticket.status === 'used' ? 'badge-error' : 'badge-success'}">
+              ${ticket.status === 'used' ? 'Sudah Digunakan' : 'Aktif'}
+            </span>
+          </td>
+          <td>${formatDateTime(ticket.purchase_date)}</td>
+        </tr>
+      `).join('');
+        }
+    </script>
+</body>
+
+</html>

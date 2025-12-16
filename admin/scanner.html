@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner - TiketKu Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/admin/css/admin-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">🎟️ TiketKu Admin</div>
+
+            <ul class="admin-nav">
+                <li><a href="/admin/dashboard.html" data-page="dashboard">📊 Dashboard</a></li>
+                <li><a href="/admin/events.html" data-page="events">🎫 Manage Events</a></li>
+                <li><a href="/admin/tickets.html" data-page="tickets">📋 All Tickets</a></li>
+                <li><a href="/admin/scanner.html" data-page="scanner" class="active">📱 Scan Tickets</a></li>
+                <li><a href="#" onclick="adminLogout()" style="color: var(--admin-danger);">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <div class="admin-header">
+                <h1>Scan Tickets</h1>
+            </div>
+
+            <div class="scanner-container">
+                <!-- Scanner methods -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <button id="startScanBtn" class="btn btn-primary" onclick="startScanner()" style="flex: 1;">
+                            📷 Start Camera Scanner
+                        </button>
+                        <button id="stopScanBtn" class="btn btn-secondary hidden" onclick="stopScanner()"
+                            style="flex: 1;">
+                            ⏹️ Stop Scanner
+                        </button>
+                    </div>
+
+                    <!-- Camera Scanner -->
+                    <div id="reader" style="display: none; margin-bottom: 1rem;"></div>
+
+                    <!-- Manual Input -->
+                    <div style="border-top: 1px solid var(--admin-border); padding-top: 1rem;">
+                        <h4 style="margin-bottom: 1rem;">Manual Code Input</h4>
+                        <form onsubmit="scanManual(event)">
+                            <div style="display: flex; gap: 1rem;">
+                                <input type="text" class="form-input" id="manualBarcode"
+                                    placeholder="Enter ticket code manually" style="flex: 1;">
+                                <button type="submit" class="btn btn-primary">Scan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Scan Result -->
+                <div id="scanResult" class="hidden"></div>
+
+                <!-- Recent Scans -->
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem;">Recent Scans</h3>
+                    <div id="recentScans">
+                        <p class="text-muted">No scans yet</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/admin.js"></script>
+    <script>
+        if (!requireAdminAuth()) { }
+
+        let html5QrcodeScanner = null;
+        let recentScans = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setActiveNav('scanner');
+        });
+
+        function startScanner() {
+            const reader = document.getElementById('reader');
+            reader.style.display = 'block';
+
+            document.getElementById('startScanBtn').classList.add('hidden');
+            document.getElementById('stopScanBtn').classList.remove('hidden');
+
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "reader",
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 150 },
+                    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+                }
+            );
+
+            html5QrcodeScanner.render(onScanSuccess, onScanError);
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('startScanBtn').classList.remove('hidden');
+            document.getElementById('stopScanBtn').classList.add('hidden');
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Stop scanner after successful scan
+            stopScanner();
+
+            // Validate the ticket
+            validateTicket(decodedText);
+        }
+
+        function onScanError(errorMessage) {
+            // Ignore scan errors (they happen frequently)
+        }
+
+        async function scanManual(event) {
+            event.preventDefault();
+
+            const barcode = document.getElementById('manualBarcode').value.trim();
+
+            if (!barcode) {
+                showNotification('Please enter a barcode', 'error');
+                return;
+            }
+
+            await validateTicket(barcode);
+            document.getElementById('manualBarcode').value = '';
+        }
+
+        async function validateTicket(barcode) {
+            const resultDiv = document.getElementById('scanResult');
+            resultDiv.innerHTML = `
+        <div class="scan-result" style="background: rgba(99, 102, 241, 0.2); border: 2px solid var(--admin-primary);">
+          <div class="spinner"></div>
+          <p style="margin-top: 1rem;">Validating ticket...</p>
+        </div>
+      `;
+            resultDiv.classList.remove('hidden');
+
+            try {
+                const response = await fetchWithAdminAuth('/api/tickets/scan', {
+                    method: 'POST',
+                    body: JSON.stringify({ barcode })
+                });
+
+                const data = await response.json();
+
+                if (data.valid) {
+                    showSuccessResult(data);
+                    addToRecentScans(barcode, data, true);
+
+                    // Play success sound (optional)
+                    playSound('success');
+                } else {
+                    showErrorResult(data);
+                    addToRecentScans(barcode, data, false);
+
+                    // Play error sound (optional)
+                    playSound('error');
+                }
+            } catch (error) {
+                console.error('Validation error:', error);
+                resultDiv.innerHTML = `
+          <div class="scan-result invalid">
+            <h2>❌ Error</h2>
+            <p>Failed to validate ticket. Please try again.</p>
+          </div>
+        `;
+            }
+        }
+
+        function showSuccessResult(data) {
+            const resultDiv = document.getElementById('scanResult');
+
+            resultDiv.innerHTML = `
+        <div class="scan-result valid">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+          <h2 style="color: var(--admin-success);">Tiket Valid!</h2>
+          <p style="margin-top: 1rem; font-size: 1.1rem;">
+            <strong>${data.ticket.event_name}</strong>
+          </p>
+          <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; text-align: left;">
+            <p><strong>Barcode:</strong> ${data.ticket.barcode}</p>
+            <p><strong>Pembeli:</strong> ${data.ticket.username} (${data.ticket.email})</p>
+            <p><strong>Jumlah:</strong> ${data.ticket.quantity} tiket</p>
+            <p><strong>Event Date:</strong> ${formatDate(data.ticket.event_date)}</p>
+            <p><strong>Location:</strong> ${data.ticket.event_location}</p>
+          </div>
+          <p style="margin-top: 1rem; color: var(--admin-success);">
+            <strong>✓ Ticket marked as used</strong>
+          </p>
+        </div>
+      `;
+        }
+
+        function showErrorResult(data) {
+            const resultDiv = document.getElementById('scanResult');
+
+            let message = data.message || 'Invalid ticket';
+            let details = '';
+
+            if (data.ticket && data.usedAt) {
+                details = `
+          <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; text-align: left;">
+            <p><strong>Event:</strong> ${data.ticket.event_name}</p>
+            <p><strong>Used At:</strong> ${formatDateTime(data.usedAt)}</p>
+          </div>
+        `;
+            }
+
+            resultDiv.innerHTML = `
+        <div class="scan-result invalid">
+          <div style="font-size: 4rem; margin-bottom: 1rem;">❌</div>
+          <h2 style="color: var(--admin-danger);">Tiket Tidak Valid</h2>
+          <p style="margin-top: 1rem; font-size: 1.1rem;">
+            <strong>${message}</strong>
+          </p>
+          ${details}
+        </div>
+      `;
+        }
+
+        function addToRecentScans(barcode, data, valid) {
+            const scan = {
+                barcode,
+                timestamp: new Date().toISOString(),
+                valid,
+                message: data.message,
+                eventName: data.ticket?.event_name
+            };
+
+            recentScans.unshift(scan);
+            recentScans = recentScans.slice(0, 10); // Keep only last 10
+
+            updateRecentScans();
+        }
+
+        function updateRecentScans() {
+            const container = document.getElementById('recentScans');
+
+            if (recentScans.length === 0) {
+                container.innerHTML = '<p class="text-muted">No scans yet</p>';
+                return;
+            }
+
+            container.innerHTML = recentScans.map(scan => `
+        <div style="border-bottom: 1px solid var(--admin-border); padding: 0.75rem 0;">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+              <p style="font-family: monospace; font-size: 0.9rem; margin-bottom: 0.25rem;">
+                ${scan.barcode}
+              </p>
+              <p style="font-size: 0.85rem; color: var(--admin-text-muted);">
+                ${scan.eventName || 'Unknown Event'}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge ${scan.valid ? 'badge-success' : 'badge-error'}">
+                ${scan.valid ? 'Valid' : 'Invalid'}
+              </span>
+              <p style="font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 0.25rem;">
+                ${formatDateTime(scan.timestamp)}
+              </p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        function playSound(type) {
+            // Optional: Add sound feedback
+            // You can add audio elements or use Web Audio API
+        }
+    </script>
+
+    <style>
+        #reader {
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        #reader__scan_region {
+            border-radius: 0.5rem !important;
+        }
+
+        #reader__dashboard_section {
+            background: transparent !important;
+        }
+    </style>
+</body>
+
+</html>

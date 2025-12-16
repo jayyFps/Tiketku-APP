@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Detail - TiketKu</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🎟️ TiketKu</div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/">Home</a></li>
+                <li><a href="/events.html">Events</a></li>
+                <li id="myTicketsLink" class="hidden"><a href="/my-tickets.html">My Tickets</a></li>
+                <li id="loginLink"><a href="#" onclick="openModal('loginModal')">Login</a></li>
+                <li id="registerLink"><a href="#" onclick="openModal('registerModal')" class="btn btn-primary"
+                        style="padding: 0.5rem 1.5rem;">Register</a></li>
+                <li id="userInfo" class="hidden">
+                    <span id="username" style="color: var(--primary-light); margin-right: 1rem;"></span>
+                    <a href="#" onclick="logout()" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Event Detail -->
+    <section class="container">
+        <div id="eventDetail">
+            <div class="loading-container">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login</h3>
+                <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="loginPassword" required>
+                </div>
+                <div id="loginError" class="alert alert-error hidden"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <p class="text-center mt-2 text-muted">
+                Belum punya akun? <a href="#"
+                    onclick="closeModal('loginModal'); openModal('registerModal')">Register</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Register</h3>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="registerPassword" required minlength="6">
+                </div>
+                <div id="registerError" class="alert alert-error hidden"></div>
+                <div id="registerSuccess" class="alert alert-success hidden"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+            </form>
+            <p class="text-center mt-2 text-muted">
+                Sudah punya akun? <a href="#" onclick="closeModal('registerModal'); openModal('loginModal')">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Purchase Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✅ Pembelian Berhasil!</h3>
+                <button class="modal-close" onclick="closeModal('successModal')">&times;</button>
+            </div>
+            <div id="successContent"></div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <a href="/my-tickets.html" class="btn btn-primary" style="flex: 1;">Lihat Tiket Saya</a>
+                <a href="/events.html" class="btn btn-ghost" style="flex: 1;">Browse Event Lain</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        let currentEvent = null;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            updateNavigation();
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('id');
+
+            if (eventId) {
+                await loadEventDetail(eventId);
+            } else {
+                window.location.href = '/events.html';
+            }
+        });
+
+        async function loadEventDetail(eventId) {
+            try {
+                const response = await fetch(`/api/events/${eventId}`);
+                const data = await response.json();
+
+                if (data.event) {
+                    currentEvent = data.event;
+                    displayEventDetail(data.event);
+                } else {
+                    document.getElementById('eventDetail').innerHTML =
+                        '<p class="text-center text-muted">Event tidak ditemukan</p>';
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+                document.getElementById('eventDetail').innerHTML =
+                    '<p class="text-center text-muted">Gagal memuat event</p>';
+            }
+        }
+
+        function displayEventDetail(event) {
+            const stockClass = event.stock > 100 ? '' : event.stock > 0 ? 'low' : 'out';
+            const stockText = event.stock > 0 ? `${event.stock} tiket tersedia` : 'Sold Out';
+
+            document.getElementById('eventDetail').innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+          <div>
+            <img src="${event.image_url}" alt="${event.name}" 
+                 style="width: 100%; border-radius: 1rem; margin-bottom: 1rem;"
+                 onerror="this.src='https://via.placeholder.com/600x400?text=Event+Image'">
+          </div>
+          
+          <div>
+            <h1 style="margin-bottom: 1rem;">${event.name}</h1>
+            
+            <div class="card" style="margin-bottom: 1rem;">
+              <div class="event-info" style="margin-bottom: 0.75rem;">
+                <span style="font-size: 1.1rem;">📅 ${formatDate(event.date)}</span>
+              </div>
+              <div class="event-info" style="margin-bottom: 0.75rem;">
+                <span style="font-size: 1.1rem;">📍 ${event.location}</span>
+              </div>
+              <div class="stock-indicator" style="margin-bottom: 1rem;">
+                <span class="stock-dot ${stockClass}"></span>
+                <span>${stockText}</span>
+              </div>
+              <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; margin-top: 1rem;">
+                <p class="price-tag">Rp ${formatPrice(event.price)}</p>
+              </div>
+            </div>
+            
+            ${event.stock > 0 ? `
+              <div class="card">
+                <h3>Beli Tiket</h3>
+                <form onsubmit="handlePurchase(event)" id="purchaseForm">
+                  <div class="form-group">
+                    <label class="form-label">Jumlah Tiket</label>
+                    <input 
+                      type="number" 
+                      class="form-input" 
+                      id="quantity" 
+                      min="1" 
+                      max="${event.stock}" 
+                      value="1" 
+                      required
+                      oninput="updateTotal()"
+                    >
+                  </div>
+                  
+                  <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                      <span>Harga per tiket:</span>
+                      <span>Rp ${formatPrice(event.price)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 700; color: var(--primary-light);">
+                      <span>Total:</span>
+                      <span id="totalPrice">Rp ${formatPrice(event.price)}</span>
+                    </div>
+                  </div>
+                  
+                  <div id="purchaseError" class="alert alert-error hidden"></div>
+                  
+                  <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    🎫 Beli Sekarang
+                  </button>
+                </form>
+              </div>
+            ` : `
+              <div class="alert alert-error">
+                Maaf, tiket untuk event ini sudah habis.
+              </div>
+            `}
+          </div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+          <h2>Tentang Event</h2>
+          <div class="card">
+            <p style="white-space: pre-line; line-height: 1.8;">${event.description || 'Tidak ada deskripsi.'}</p>
+          </div>
+        </div>
+      `;
+        }
+
+        function updateTotal() {
+            if (!currentEvent) return;
+
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+            const total = currentEvent.price * quantity;
+
+            document.getElementById('totalPrice').textContent = `Rp ${formatPrice(total)}`;
+        }
+
+        async function handlePurchase(event) {
+            event.preventDefault();
+
+            // Check authentication
+            if (!isAuthenticated()) {
+                showNotification('Silakan login terlebih dahulu', 'error');
+                openModal('loginModal');
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const errorEl = document.getElementById('purchaseError');
+            errorEl.classList.add('hidden');
+
+            // Disable submit button
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Memproses...';
+
+            try {
+                const response = await fetchWithAuth('/api/tickets/purchase', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        eventId: currentEvent.id,
+                        quantity: quantity
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Show success modal with ticket info
+                    showSuccessModal(data.ticket);
+
+                    // Reload event to update stock
+                    await loadEventDetail(currentEvent.id);
+                } else {
+                    errorEl.textContent = data.error || 'Pembelian gagal';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Purchase error:', error);
+                errorEl.textContent = error.message || 'Terjadi kesalahan. Silakan coba lagi.';
+                errorEl.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        function showSuccessModal(ticket) {
+            const content = `
+        <div style="text-align: center;">
+          <div style="background: rgba(16, 185, 129, 0.1); padding: 2rem; border-radius: 1rem; margin-bottom: 1rem;">
+            <p style="font-size: 1.1rem; margin-bottom: 1rem;">Tiket berhasil dibeli!</p>
+            <p class="text-muted">Kode Barcode: <strong>${ticket.barcode}</strong></p>
+            <p class="text-muted">Event: ${ticket.eventName}</p>
+            <p class="text-muted">Jumlah: ${ticket.quantity} tiket</p>
+            <p class="text-muted" style="font-size: 1.25rem; color: var(--primary-light); margin-top: 1rem;">
+              Total: Rp ${formatPrice(ticket.totalPrice)}
+            </p>
+          </div>
+          <p class="text-muted">
+            Tiket Anda dapat dilihat di halaman "My Tickets".<br>
+            Tunjukkan barcode saat masuk event.
+          </p>
+        </div>
+      `;
+
+            document.getElementById('successContent').innerHTML = content;
+            openModal('successModal');
+        }
+
+        function formatDate(dateString) {
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('id-ID').format(price);
+        }
+    </script>
+
+    <style>
+        @media (max-width: 768px) {
+            #eventDetail>div:first-child {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</body>
+
+</html>

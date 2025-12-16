@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TiketKu - Platform Penjualan Tiket Event</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">🎟️ TiketKu</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/">Home</a></li>
+        <li><a href="/events.html">Events</a></li>
+        <li id="myTicketsLink" class="hidden"><a href="/my-tickets.html">My Tickets</a></li>
+        <li id="loginLink"><a href="#" onclick="openModal('loginModal')">Login</a></li>
+        <li id="registerLink"><a href="#" onclick="openModal('registerModal')" class="btn btn-primary"
+            style="padding: 0.5rem 1.5rem;">Register</a></li>
+        <li id="userInfo" class="hidden">
+          <span id="username" style="color: var(--primary-light); margin-right: 1rem;"></span>
+          <a href="#" onclick="logout()" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Temukan Event Favoritmu</h1>
+      <p>Platform terpercaya untuk membeli tiket konser, seminar, festival, dan event menarik lainnya</p>
+      <a href="/events.html" class="btn btn-primary">Jelajahi Event</a>
+    </div>
+  </section>
+
+  <!-- Featured Events -->
+  <section class="container">
+    <h2 class="text-center mb-2">Event Populer</h2>
+    <div class="grid" id="featuredEvents">
+      <!-- Loading Spinner -->
+      <div class="loading-container" style="grid-column: 1/-1;">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Login</h3>
+        <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+      </div>
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="loginUsername" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="loginPassword" required>
+        </div>
+        <div id="loginError" class="alert alert-error hidden"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+      </form>
+      <p class="text-center mt-2 text-muted">
+        Belum punya akun? <a href="#" onclick="closeModal('loginModal'); openModal('registerModal')">Register</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Register</h3>
+        <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+      </div>
+      <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="registerUsername" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="registerEmail" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="registerPassword" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Daftar Sebagai</label>
+          <select class="form-input" id="registerRole" required>
+            <option value="user">User (Pembeli Tiket)</option>
+            <option value="admin">Admin (Pengelola Event)</option>
+          </select>
+        </div>
+        <div id="registerError" class="alert alert-error hidden"></div>
+        <div id="registerSuccess" class="alert alert-success hidden"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+      </form>
+      <p class="text-center mt-2 text-muted">
+        Sudah punya akun? <a href="#" onclick="closeModal('registerModal'); openModal('loginModal')">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Load featured events on page load
+    window.addEventListener('DOMContentLoaded', async () => {
+      updateNavigation();
+      await loadFeaturedEvents();
+
+      // Check if we should show login modal (e.g., redirected from admin)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('showLogin') === 'true') {
+        openModal('loginModal');
+        // Clean URL
+        window.history.replaceState({}, document.title, '/');
+      }
+    });
+
+    async function loadFeaturedEvents() {
+      try {
+        const response = await fetch('/api/events');
+        const data = await response.json();
+
+        const eventsContainer = document.getElementById('featuredEvents');
+
+        if (data.events && data.events.length > 0) {
+          // Show only first 6 events
+          const featured = data.events.slice(0, 6);
+          eventsContainer.innerHTML = featured.map(event => createEventCard(event)).join('');
+        } else {
+          eventsContainer.innerHTML = '<p class="text-center text-muted">Belum ada event tersedia</p>';
+        }
+      } catch (error) {
+        console.error('Error loading events:', error);
+        document.getElementById('featuredEvents').innerHTML =
+          '<p class="text-center text-muted">Gagal memuat event</p>';
+      }
+    }
+
+    function createEventCard(event) {
+      const stockClass = event.stock > 100 ? '' : event.stock > 0 ? 'low' : 'out';
+      const stockText = event.stock > 0 ? `${event.stock} tiket tersedia` : 'Sold Out';
+
+      return `
+        <div class="card">
+          <img src="${event.image_url}" alt="${event.name}" class="card-image" onerror="this.src='https://via.placeholder.com/400x200?text=Event+Image'">
+          <h3 class="card-title">${event.name}</h3>
+          <div class="event-info">
+            <span>📅 ${formatDate(event.date)}</span>
+          </div>
+          <div class="event-info">
+            <span>📍 ${event.location}</span>
+          </div>
+          <p class="price-tag">Rp ${formatPrice(event.price)}</p>
+          <div class="stock-indicator mb-1">
+            <span class="stock-dot ${stockClass}"></span>
+            <span>${stockText}</span>
+          </div>
+          <a href="/event-detail.html?id=${event.id}" class="btn btn-primary" style="width: 100%;">
+            ${event.stock > 0 ? 'Beli Tiket' : 'Lihat Detail'}
+          </a>
+        </div>
+      `;
+    }
+
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString('id-ID', options);
+    }
+
+    function formatPrice(price) {
+      return new Intl.NumberFormat('id-ID').format(price);
+    }
+  </script>
+</body>
+
+</html>
