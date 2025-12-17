@@ -34,13 +34,12 @@
 
             <div class="scanner-container">
                 <!-- Scanner methods -->
-                <div class="card" style="margin-bottom: 2rem;">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <button id="startScanBtn" class="btn btn-primary" onclick="startScanner()" style="flex: 1;">
+                <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+                    <div class="scanner-actions">
+                        <button id="startScanBtn" class="btn btn-primary" onclick="startScanner()">
                             📷 Start Camera Scanner
                         </button>
-                        <button id="stopScanBtn" class="btn btn-secondary hidden" onclick="stopScanner()"
-                            style="flex: 1;">
+                        <button id="stopScanBtn" class="btn btn-secondary hidden" onclick="stopScanner()">
                             ⏹️ Stop Scanner
                         </button>
                     </div>
@@ -52,9 +51,9 @@
                     <div style="border-top: 1px solid var(--admin-border); padding-top: 1rem;">
                         <h4 style="margin-bottom: 1rem;">Manual Code Input</h4>
                         <form onsubmit="scanManual(event)">
-                            <div style="display: flex; gap: 1rem;">
+                            <div class="manual-input-group">
                                 <input type="text" class="form-input" id="manualBarcode"
-                                    placeholder="Enter ticket code manually" style="flex: 1;">
+                                    placeholder="Enter ticket code manually">
                                 <button type="submit" class="btn btn-primary">Scan</button>
                             </div>
                         </form>
@@ -65,7 +64,7 @@
                 <div id="scanResult" class="hidden"></div>
 
                 <!-- Recent Scans -->
-                <div class="card">
+                <div class="card" style="padding: 1.5rem;">
                     <h3 style="margin-bottom: 1rem;">Recent Scans</h3>
                     <div id="recentScans">
                         <p class="text-muted">No scans yet</p>

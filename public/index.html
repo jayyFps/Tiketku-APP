@@ -33,6 +33,17 @@
             style="padding: 0.5rem 1rem; font-size: 0.8rem;">Logout</a>
         </li>
       </ul>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="nav-toggle" onclick="toggleMenu()"
+        style="border:none; background:none; cursor:pointer; color:var(--text-main); display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </div>
   </nav>
 
@@ -170,6 +181,12 @@
         console.error('Error:', error);
         document.getElementById('featuredEvents').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Gagal memuat event.</p>';
       }
+    }
+
+    // Mobile Menu Logic
+    function toggleMenu() {
+      const navLinks = document.getElementById('navLinks');
+      navLinks.classList.toggle('active');
     }
 
     function createEventCard(event) {

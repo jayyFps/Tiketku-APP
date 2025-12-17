@@ -12,7 +12,7 @@
 <body>
   <!-- Navigation -->
   <nav class="navbar">
-    <div class="nav-container">
+    <div class="nav-glass">
       <div class="logo">🎟️ TiketKu</div>
       <ul class="nav-links" id="navLinks">
         <li><a href="/">Home</a></li>
@@ -26,11 +26,22 @@
           <a href="#" onclick="logout()" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Logout</a>
         </li>
       </ul>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="nav-toggle" onclick="toggleMenu()"
+        style="border:none; background:none; cursor:pointer; color:var(--text-main); display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
     </div>
   </nav>
 
   <!-- My Tickets -->
-  <section class="container">
+  <section class="container" style="padding-top: 2rem;">
     <h1 class="text-center mb-2">Tiket Saya</h1>
     <p class="text-center text-muted mb-2">Semua tiket yang Anda beli akan tampil di sini</p>
 
@@ -92,50 +103,52 @@
     function createTicketCard(ticket) {
       const isUsed = ticket.status === 'used';
       const statusBadge = isUsed
-        ? '<span class="badge badge-error">Sudah Digunakan</span>'
-        : '<span class="badge badge-success">Aktif</span>';
+        ? '<span style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Sudah Digunakan</span>'
+        : '<span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Aktif</span>';
 
       return `
         <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: start;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                <h3>${ticket.event_name}</h3>
-                ${statusBadge}
+          <div class="card-content" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 1rem;">
+              <div>
+                <h3 style="margin-bottom: 0.5rem; color: var(--text-main); font-size: 1.25rem;">${ticket.event_name}</h3>
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">ID: ${ticket.barcode}</span>
               </div>
-              
-              <div class="event-info" style="margin-bottom: 0.5rem;">
-                <span>📅 ${formatDate(ticket.event_date)}</span>
-              </div>
-              <div class="event-info" style="margin-bottom: 0.5rem;">
-                <span>📍 ${ticket.event_location}</span>
-              </div>
-              <div class="event-info" style="margin-bottom: 0.5rem;">
-                <span>🎫 ${ticket.quantity} tiket</span>
-              </div>
-              <div class="event-info" style="margin-bottom: 0.5rem;">
-                <span>💰 Total: Rp ${formatPrice(ticket.total_price)}</span>
-              </div>
-              <div class="event-info text-muted" style="font-size: 0.85rem;">
-                <span>Dibeli: ${formatDateTime(ticket.purchase_date)}</span>
-              </div>
-              ${isUsed ? `
-                <div class="event-info text-muted" style="font-size: 0.85rem;">
-                  <span>Digunakan: ${formatDateTime(ticket.used_at)}</span>
-                </div>
-              ` : ''}
+              <div>${statusBadge}</div>
             </div>
             
-            <div style="text-align: center;">
-              <button 
-                onclick="showBarcode('${ticket.barcode}')" 
-                class="btn ${isUsed ? 'btn-ghost' : 'btn-primary'}"
-              >
-                Lihat QR Code
-              </button>
-              <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.5rem;">
-                ${ticket.barcode}
-              </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; align-items: center;">
+              <div>
+                 <div class="event-info" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                  <span style="font-size: 1.2rem;">📅</span>
+                  <span style="font-weight: 500;">${formatDate(ticket.event_date)}</span>
+                </div>
+                <div class="event-info" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                  <span style="font-size: 1.2rem;">📍</span>
+                  <span>${ticket.event_location}</span>
+                </div>
+                <div class="event-info" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                  <span style="font-size: 1.2rem;">🎫</span>
+                  <span>${ticket.quantity} Tiket</span>
+                </div>
+                 <div class="event-info" style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary); font-weight: 700; background: rgba(139, 92, 246, 0.1); padding: 0.5rem 1rem; border-radius: 8px; display: inline-flex;">
+                  <span>💰 Rp ${formatPrice(ticket.total_price)}</span>
+                </div>
+              </div>
+              
+              <div style="text-align: right; display: flex; flex-direction: column; gap: 1rem; align-items: flex-end;">
+                 <div style="font-size: 0.8rem; color: var(--text-light);">
+                    Dibeli: ${formatDateTime(ticket.purchase_date)}
+                    ${isUsed ? `<br>Digunakan: ${formatDateTime(ticket.used_at)}` : ''}
+                 </div>
+                 <button 
+                  onclick="showBarcode('${ticket.barcode}')" 
+                  class="btn ${isUsed ? 'btn-ghost' : 'btn-primary'}"
+                  style="width: 100%; max-width: 200px;"
+                >
+                  ${isUsed ? 'Lihat Details' : '🔍 Lihat QR Code'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -189,6 +202,11 @@
 
     function formatPrice(price) {
       return new Intl.NumberFormat('id-ID').format(price);
+    }
+
+    function toggleMenu() {
+      const navLinks = document.getElementById('navLinks');
+      navLinks.classList.toggle('active');
     }
   </script>
 </body>

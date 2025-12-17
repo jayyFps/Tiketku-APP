@@ -12,7 +12,7 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-container">
+        <div class="nav-glass">
             <div class="logo">🎟️ TiketKu</div>
             <ul class="nav-links" id="navLinks">
                 <li><a href="/">Home</a></li>
@@ -26,11 +26,22 @@
                     <a href="#" onclick="logout()" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Logout</a>
                 </li>
             </ul>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="nav-toggle" onclick="toggleMenu()"
+                style="border:none; background:none; cursor:pointer; color:var(--text-main); display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
         </div>
     </nav>
 
     <!-- Page Header -->
-    <section class="container">
+    <section class="container" style="padding-top: 2rem;">
         <div style="text-align: center; margin-bottom: 2rem;">
             <h1>Semua Event</h1>
             <p class="text-secondary">Temukan event yang sesuai dengan minatmu</p>
@@ -151,28 +162,40 @@
         function createEventCard(event) {
             const stockClass = event.stock > 100 ? '' : event.stock > 0 ? 'low' : 'out';
             const stockText = event.stock > 0 ? `${event.stock} tiket tersedia` : 'Sold Out';
+            const stockColor = event.stock > 0 ? 'var(--text-secondary)' : '#ef4444';
 
             return `
         <div class="card">
-          <img src="${event.image_url}" alt="${event.name}" class="card-image" onerror="this.src='https://via.placeholder.com/400x200?text=Event+Image'">
-          <h3 class="card-title">${event.name}</h3>
-          <p class="card-text" style="min-height: 60px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${event.description || 'No description'}
-          </p>
-          <div class="event-info">
-            <span>📅 ${formatDate(event.date)}</span>
-          </div>
-          <div class="event-info">
-            <span>📍 ${event.location}</span>
-          </div>
-          <p class="price-tag">Rp ${formatPrice(event.price)}</p>
-          <div class="stock-indicator mb-1">
-            <span class="stock-dot ${stockClass}"></span>
-            <span>${stockText}</span>
-          </div>
-          <a href="/event-detail.html?id=${event.id}" class="btn btn-primary" style="width: 100%;">
-            ${event.stock > 0 ? 'Beli Tiket' : 'Lihat Detail'}
-          </a>
+            <div class="card-img-wrap">
+                <img src="${event.image_url}" alt="${event.name}" class="card-img" onerror="this.src='https://via.placeholder.com/400x200?text=Event+Image'">
+            </div>
+            <div class="card-content">
+                <h3 class="card-title">${event.name}</h3>
+                <p class="card-text" style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    ${event.description || 'Tidak ada deskripsi'}
+                </p>
+                
+                <div style="margin-bottom: 1rem;">
+                    <div class="event-info" style="margin-bottom: 0.5rem;">
+                        <span>📅 ${formatDate(event.date)}</span>
+                    </div>
+                    <div class="event-info">
+                        <span>📍 ${event.location}</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 1rem;">
+                    <p class="card-price" style="margin: 0; font-size: 1.25rem;">Rp ${formatPrice(event.price)}</p>
+                    <div class="stock-indicator">
+                        <span class="stock-dot ${stockClass}"></span>
+                        <span style="font-size: 0.85rem; color: ${stockColor}">${stockText}</span>
+                    </div>
+                </div>
+
+                <a href="/event-detail.html?id=${event.id}" class="btn btn-primary" style="width: 100%;">
+                    ${event.stock > 0 ? 'Beli Tiket' : 'Lihat Detail'}
+                </a>
+            </div>
         </div>
       `;
         }
@@ -213,6 +236,11 @@
 
         function formatPrice(price) {
             return new Intl.NumberFormat('id-ID').format(price);
+        }
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
         }
     </script>
 </body>

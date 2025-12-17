@@ -12,7 +12,7 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-container">
+        <div class="nav-glass">
             <div class="logo">🎟️ TiketKu</div>
             <ul class="nav-links" id="navLinks">
                 <li><a href="/">Home</a></li>
@@ -26,11 +26,22 @@
                     <a href="#" onclick="logout()" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Logout</a>
                 </li>
             </ul>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="nav-toggle" onclick="toggleMenu()"
+                style="border:none; background:none; cursor:pointer; color:var(--text-main); display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
         </div>
     </nav>
 
     <!-- Event Detail -->
-    <section class="container">
+    <section class="container" style="padding-top: 2rem;">
         <div id="eventDetail">
             <div class="loading-container">
                 <div class="spinner"></div>
@@ -102,9 +113,12 @@
                 <button class="modal-close" onclick="closeModal('successModal')">&times;</button>
             </div>
             <div id="successContent"></div>
-            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                <a href="/my-tickets.html" class="btn btn-primary" style="flex: 1;">Lihat Tiket Saya</a>
-                <a href="/events.html" class="btn btn-ghost" style="flex: 1;">Browse Event Lain</a>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2rem;">
+                <a href="/my-tickets.html" class="btn btn-primary" style="width: 100%; justify-content: center;">Lihat
+                    Tiket Saya</a>
+                <a href="/events.html" class="btn btn-ghost"
+                    style="width: 100%; justify-content: center; border: 1px solid var(--primary);">Browse Event
+                    Lain</a>
             </div>
         </div>
     </div>
@@ -147,82 +161,107 @@
         function displayEventDetail(event) {
             const stockClass = event.stock > 100 ? '' : event.stock > 0 ? 'low' : 'out';
             const stockText = event.stock > 0 ? `${event.stock} tiket tersedia` : 'Sold Out';
+            const stockColor = event.stock > 0 ? '#10b981' : '#ef4444';
 
             document.getElementById('eventDetail').innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
           <div>
             <img src="${event.image_url}" alt="${event.name}" 
-                 style="width: 100%; border-radius: 1rem; margin-bottom: 1rem;"
+                 style="width: 100%; border-radius: 1rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm);"
                  onerror="this.src='https://via.placeholder.com/600x400?text=Event+Image'">
+            
+             <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-content" style="padding: 1.5rem;">
+                    <h2 class="section-title" style="text-align: left; margin-bottom: 1rem; font-size: 1.5rem;">Tentang Event</h2>
+                    <p style="white-space: pre-line; line-height: 1.8; color: var(--text-secondary);">${event.description || 'Tidak ada deskripsi.'}</p>
+                </div>
+            </div>
           </div>
           
           <div>
-            <h1 style="margin-bottom: 1rem;">${event.name}</h1>
-            
-            <div class="card" style="margin-bottom: 1rem;">
-              <div class="event-info" style="margin-bottom: 0.75rem;">
-                <span style="font-size: 1.1rem;">📅 ${formatDate(event.date)}</span>
-              </div>
-              <div class="event-info" style="margin-bottom: 0.75rem;">
-                <span style="font-size: 1.1rem;">📍 ${event.location}</span>
-              </div>
-              <div class="stock-indicator" style="margin-bottom: 1rem;">
-                <span class="stock-dot ${stockClass}"></span>
-                <span>${stockText}</span>
-              </div>
-              <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem; margin-top: 1rem;">
-                <p class="price-tag">Rp ${formatPrice(event.price)}</p>
-              </div>
+            <div class="card" style="margin-bottom: 1.5rem; border-top: 4px solid var(--primary);">
+                <div class="card-content" style="padding: 1.5rem;">
+                     <h1 style="margin-bottom: 0.5rem; font-size: 2rem; line-height: 1.2;">${event.name}</h1>
+                     <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                        <span style="background: rgba(139, 92, 246, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Event</span>
+                        <span style="background: ${event.stock > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; color: ${stockColor}; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">${stockText}</span>
+                     </div>
+                     
+                    <div style="margin-bottom: 1.5rem;">
+                        <div class="event-info" style="margin-bottom: 1rem; display: flex; align-items: start; gap: 1rem;">
+                            <span style="font-size: 1.5rem; background: var(--bg); padding: 0.5rem; border-radius: 50%;">�</span>
+                            <div>
+                                <span style="display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.2rem;">Tanggal & Waktu</span>
+                                <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">${formatDate(event.date)}</span>
+                            </div>
+                        </div>
+                        <div class="event-info" style="display: flex; align-items: start; gap: 1rem;">
+                            <span style="font-size: 1.5rem; background: var(--bg); padding: 0.5rem; border-radius: 50%;">📍</span>
+                             <div>
+                                <span style="display: block; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.2rem;">Lokasi</span>
+                                <span style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">${event.location}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid #f1f5f9; padding-top: 1.5rem;">
+                        <span style="display: block; font-size: 0.9rem; color: var(--text-light); margin-bottom: 0.5rem;">Harga Tiket</span>
+                        <p class="price-tag" style="font-size: 2rem; margin: 0;">Rp ${formatPrice(event.price)}</p>
+                    </div>
+                </div>
             </div>
             
             ${event.stock > 0 ? `
               <div class="card">
-                <h3>Beli Tiket</h3>
-                <form onsubmit="handlePurchase(event)" id="purchaseForm">
-                  <div class="form-group">
-                    <label class="form-label">Jumlah Tiket</label>
-                    <input 
-                      type="number" 
-                      class="form-input" 
-                      id="quantity" 
-                      min="1" 
-                      max="${event.stock}" 
-                      value="1" 
-                      required
-                      oninput="updateTotal()"
-                    >
-                  </div>
-                  
-                  <div style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                      <span>Harga per tiket:</span>
-                      <span>Rp ${formatPrice(event.price)}</span>
+                <div class="card-content" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Beli Tiket</h3>
+                    <form onsubmit="handlePurchase(event)" id="purchaseForm">
+                    <div class="form-group">
+                        <label class="form-label">Jumlah Tiket</label>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <button type="button" onclick="adjustQuantity(-1)" class="btn btn-ghost" style="border: 1px solid #e2e8f0; padding: 0.5rem 1rem;">-</button>
+                            <input 
+                            type="number" 
+                            class="form-input" 
+                            id="quantity" 
+                            min="1" 
+                            max="${event.stock}" 
+                            value="1" 
+                            required
+                            oninput="updateTotal()"
+                            style="text-align: center; margin: 0; font-weight: 700; font-size: 1.2rem;"
+                            >
+                            <button type="button" onclick="adjustQuantity(1)" class="btn btn-ghost" style="border: 1px solid #e2e8f0; padding: 0.5rem 1rem;">+</button>
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 700; color: var(--primary-light);">
-                      <span>Total:</span>
-                      <span id="totalPrice">Rp ${formatPrice(event.price)}</span>
+                    
+                    <div style="background: var(--bg); padding: 1.25rem; border-radius: 1rem; margin: 1.5rem 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                        <span>Harga Satuan:</span>
+                        <span>Rp ${formatPrice(event.price)}</span>
+                        </div>
+                        <div style="width: 100%; height: 1px; background: #e2e8f0; margin: 0.5rem 0;"></div>
+                        <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 800; color: var(--primary);">
+                        <span>Total Bayar:</span>
+                        <span id="totalPrice">Rp ${formatPrice(event.price)}</span>
+                        </div>
                     </div>
-                  </div>
-                  
-                  <div id="purchaseError" class="alert alert-error hidden"></div>
-                  
-                  <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    🎫 Beli Sekarang
-                  </button>
-                </form>
+                    
+                    <div id="purchaseError" class="alert alert-error hidden"></div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.39);">
+                        🎫 Beli Tiket Sekarang
+                    </button>
+                    </form>
+                </div>
               </div>
             ` : `
-              <div class="alert alert-error">
-                Maaf, tiket untuk event ini sudah habis.
+              <div class="alert alert-error" style="text-align: center; padding: 2rem;">
+                <span style="font-size: 2rem;">🚫</span>
+                <h3 style="margin-top: 1rem;">Tiket Habis</h3>
+                <p>Maaf, tiket untuk event ini sudah sold out.</p>
               </div>
             `}
-          </div>
-        </div>
-        
-        <div style="margin-top: 2rem;">
-          <h2>Tentang Event</h2>
-          <div class="card">
-            <p style="white-space: pre-line; line-height: 1.8;">${event.description || 'Tidak ada deskripsi.'}</p>
           </div>
         </div>
       `;
@@ -231,10 +270,28 @@
         function updateTotal() {
             if (!currentEvent) return;
 
-            const quantity = parseInt(document.getElementById('quantity').value) || 1;
-            const total = currentEvent.price * quantity;
+            const quantityInput = document.getElementById('quantity');
+            let quantity = parseInt(quantityInput.value) || 1;
 
+            // Ensure bounds
+            if (quantity < 1) quantity = 1;
+            if (quantity > currentEvent.stock) quantity = currentEvent.stock;
+
+            quantityInput.value = quantity;
+
+            const total = currentEvent.price * quantity;
             document.getElementById('totalPrice').textContent = `Rp ${formatPrice(total)}`;
+        }
+
+        function adjustQuantity(change) {
+            const quantityInput = document.getElementById('quantity');
+            let newQuantity = (parseInt(quantityInput.value) || 0) + change;
+
+            if (newQuantity < 1) newQuantity = 1;
+            if (newQuantity > currentEvent.stock) newQuantity = currentEvent.stock;
+
+            quantityInput.value = newQuantity;
+            updateTotal();
         }
 
         async function handlePurchase(event) {
@@ -323,6 +380,11 @@
 
         function formatPrice(price) {
             return new Intl.NumberFormat('id-ID').format(price);
+        }
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
         }
     </script>
 
