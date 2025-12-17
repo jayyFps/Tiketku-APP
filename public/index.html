@@ -4,48 +4,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TiketKu - Platform Penjualan Tiket Event</title>
+  <title>TiketKu - Platform Event Modern</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
-  <!-- Navigation -->
+
+  <!-- Navbar -->
   <nav class="navbar">
-    <div class="nav-container">
-      <div class="logo">🎟️ TiketKu</div>
+    <div class="nav-glass">
+      <div class="logo">✨ TiketKu</div>
       <ul class="nav-links" id="navLinks">
-        <li><a href="/">Home</a></li>
-        <li><a href="/events.html">Events</a></li>
-        <li id="myTicketsLink" class="hidden"><a href="/my-tickets.html">My Tickets</a></li>
-        <li id="loginLink"><a href="#" onclick="openModal('loginModal')">Login</a></li>
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/events.html" class="nav-link">Explore</a></li>
+        <li id="myTicketsLink" class="hidden"><a href="/my-tickets.html" class="nav-link">My Tickets</a></li>
+
+        <!-- Auth Buttons -->
+        <li id="loginLink"><a href="#" onclick="openModal('loginModal')" class="btn btn-ghost">Sign In</a></li>
         <li id="registerLink"><a href="#" onclick="openModal('registerModal')" class="btn btn-primary"
-            style="padding: 0.5rem 1.5rem;">Register</a></li>
-        <li id="userInfo" class="hidden">
-          <span id="username" style="color: var(--primary-light); margin-right: 1rem;"></span>
-          <a href="#" onclick="logout()" class="btn btn-ghost" style="padding: 0.5rem 1rem;">Logout</a>
+            style="padding: 0.5rem 1.5rem;">Join Free</a></li>
+
+        <li id="userInfo" class="hidden flex items-center gap-2">
+          <span id="username" style="font-weight:600; color:var(--primary); margin-right:10px;"></span>
+          <a href="#" onclick="logout()" class="btn btn-ghost"
+            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Logout</a>
         </li>
       </ul>
     </div>
   </nav>
 
   <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <h1>Temukan Event Favoritmu</h1>
-      <p>Platform terpercaya untuk membeli tiket konser, seminar, festival, dan event menarik lainnya</p>
-      <a href="/events.html" class="btn btn-primary">Jelajahi Event</a>
+  <section class="hero container">
+    <div class="hero-content">
+      <span class="hero-tag">🚀 Platform Tiket Masa Depan</span>
+      <h1>Temukan Event Seru & Kembangkan Skill Baru</h1>
+      <p>Jelajahi ribuan konser, seminar, dan workshop menarik. Beli tiket dengan mudah, cepat, dan aman.</p>
+
+      <!-- Search Pill -->
+      <form action="/events.html" method="GET" class="search-pill">
+        <input type="text" name="search" class="search-input" placeholder="Cari event, artis, atau lokasi...">
+        <button type="submit" class="search-btn">Cari</button>
+      </form>
+    </div>
+
+    <!-- 3D Illustration -->
+    <div class="hero-image-container">
+      <img src="/images/hero.png" alt="Event Celebration" class="hero-image"
+        onerror="this.src='https://cdni.iconscout.com/illustration/premium/thumb/people-celebrating-near-confetti-giant-smartphone-screen-2975815-2476891.png'">
     </div>
   </section>
 
-  <!-- Featured Events -->
+  <!-- Featured Section -->
   <section class="container">
-    <h2 class="text-center mb-2">Event Populer</h2>
+    <div class="section-title">
+      <h2>Event Populer Minggu Ini 🔥</h2>
+      <p>Jangan sampai kehabisan tiket event favoritmu</p>
+    </div>
+
     <div class="grid" id="featuredEvents">
-      <!-- Loading Spinner -->
-      <div class="loading-container" style="grid-column: 1/-1;">
+      <div class="loading-container" style="text-align:center; grid-column:1/-1;">
         <div class="spinner"></div>
       </div>
     </div>
@@ -54,24 +74,27 @@
   <!-- Login Modal -->
   <div id="loginModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">
-        <h3>Login</h3>
-        <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3>Welcome Back 👋</h3>
+        <button onclick="closeModal('loginModal')"
+          style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
       </div>
       <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label">Username</label>
+        <div>
+          <label style="font-weight:600; font-size:0.9rem;">Username</label>
           <input type="text" class="form-input" id="loginUsername" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
+        <div>
+          <label style="font-weight:600; font-size:0.9rem;">Password</label>
           <input type="password" class="form-input" id="loginPassword" required>
         </div>
-        <div id="loginError" class="alert alert-error hidden"></div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+        <div id="loginError" class="alert alert-error hidden" style="color:red; margin-bottom:1rem; font-size:0.9rem;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
       </form>
-      <p class="text-center mt-2 text-muted">
-        Belum punya akun? <a href="#" onclick="closeModal('loginModal'); openModal('registerModal')">Register</a>
+      <p style="text-align:center; margin-top:1rem; font-size:0.9rem; color:var(--text-light);">
+        Belum punya akun? <a href="#" onclick="closeModal('loginModal'); openModal('registerModal')"
+          style="color:var(--primary); font-weight:600;">Daftar disini</a>
       </p>
     </div>
   </div>
@@ -79,52 +102,54 @@
   <!-- Register Modal -->
   <div id="registerModal" class="modal">
     <div class="modal-content">
-      <div class="modal-header">
-        <h3>Register</h3>
-        <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+        <h3>Create Account 🚀</h3>
+        <button onclick="closeModal('registerModal')"
+          style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
       </div>
       <form id="registerForm" onsubmit="handleRegister(event)">
-        <div class="form-group">
-          <label class="form-label">Username</label>
+        <div>
+          <label style="font-weight:600; font-size:0.9rem;">Username</label>
           <input type="text" class="form-input" id="registerUsername" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
+        <div>
+          <label style="font-weight:600; font-size:0.9rem;">Email</label>
           <input type="email" class="form-input" id="registerEmail" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
+        <div>
+          <label style="font-weight:600; font-size:0.9rem;">Password</label>
           <input type="password" class="form-input" id="registerPassword" required minlength="6">
         </div>
-        <div class="form-group">
-          <label class="form-label">Daftar Sebagai</label>
-          <select class="form-input" id="registerRole" required>
+        <div>
+          <label style="font-weight:600; font-size:0.9rem;">Daftar Sebagai</label>
+          <select class="form-select" id="registerRole" required>
             <option value="user">User (Pembeli Tiket)</option>
             <option value="admin">Admin (Pengelola Event)</option>
           </select>
         </div>
-        <div id="registerError" class="alert alert-error hidden"></div>
-        <div id="registerSuccess" class="alert alert-success hidden"></div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+        <div id="registerError" class="alert alert-error hidden"
+          style="color:red; margin-bottom:1rem; font-size:0.9rem;"></div>
+        <div id="registerSuccess" class="alert alert-success hidden"
+          style="color:green; margin-bottom:1rem; font-size:0.9rem;"></div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
       </form>
-      <p class="text-center mt-2 text-muted">
-        Sudah punya akun? <a href="#" onclick="closeModal('registerModal'); openModal('loginModal')">Login</a>
+      <p style="text-align:center; margin-top:1rem; font-size:0.9rem; color:var(--text-light);">
+        Sudah punya akun? <a href="#" onclick="closeModal('registerModal'); openModal('loginModal')"
+          style="color:var(--primary); font-weight:600;">Login</a>
       </p>
     </div>
   </div>
 
   <script src="/js/app.js"></script>
   <script>
-    // Load featured events on page load
+    // Frontend Logic
     window.addEventListener('DOMContentLoaded', async () => {
       updateNavigation();
       await loadFeaturedEvents();
 
-      // Check if we should show login modal (e.g., redirected from admin)
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('showLogin') === 'true') {
         openModal('loginModal');
-        // Clean URL
         window.history.replaceState({}, document.title, '/');
       }
     });
@@ -133,56 +158,47 @@
       try {
         const response = await fetch('/api/events');
         const data = await response.json();
-
         const eventsContainer = document.getElementById('featuredEvents');
 
         if (data.events && data.events.length > 0) {
-          // Show only first 6 events
           const featured = data.events.slice(0, 6);
           eventsContainer.innerHTML = featured.map(event => createEventCard(event)).join('');
         } else {
-          eventsContainer.innerHTML = '<p class="text-center text-muted">Belum ada event tersedia</p>';
+          eventsContainer.innerHTML = '<p style="text-align:center; grid-column:1/-1;">Belum ada event tersedia.</p>';
         }
       } catch (error) {
-        console.error('Error loading events:', error);
-        document.getElementById('featuredEvents').innerHTML =
-          '<p class="text-center text-muted">Gagal memuat event</p>';
+        console.error('Error:', error);
+        document.getElementById('featuredEvents').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Gagal memuat event.</p>';
       }
     }
 
     function createEventCard(event) {
-      const stockClass = event.stock > 100 ? '' : event.stock > 0 ? 'low' : 'out';
-      const stockText = event.stock > 0 ? `${event.stock} tiket tersedia` : 'Sold Out';
+      // Stock logic
+      const stockText = event.stock > 0 ? `${event.stock} seat left` : 'Sold Out';
+      const stockColor = event.stock > 0 ? '#10b981' : '#ef4444';
 
       return `
         <div class="card">
-          <img src="${event.image_url}" alt="${event.name}" class="card-image" onerror="this.src='https://via.placeholder.com/400x200?text=Event+Image'">
-          <h3 class="card-title">${event.name}</h3>
-          <div class="event-info">
-            <span>📅 ${formatDate(event.date)}</span>
-          </div>
-          <div class="event-info">
-            <span>📍 ${event.location}</span>
-          </div>
-          <p class="price-tag">Rp ${formatPrice(event.price)}</p>
-          <div class="stock-indicator mb-1">
-            <span class="stock-dot ${stockClass}"></span>
-            <span>${stockText}</span>
-          </div>
-          <a href="/event-detail.html?id=${event.id}" class="btn btn-primary" style="width: 100%;">
-            ${event.stock > 0 ? 'Beli Tiket' : 'Lihat Detail'}
-          </a>
+            <div class="card-img-wrap">
+                <img src="${event.image_url}" alt="${event.name}" class="card-img" onerror="this.src='https://via.placeholder.com/400x200?text=Event'">
+                <div style="position:absolute; top:10px; right:10px; background:white; padding:4px 12px; border-radius:12px; font-size:0.8rem; font-weight:600; color:${stockColor}">
+                    ${stockText}
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="card-info">
+                    <span>📅 ${new Date(event.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span>📍 ${event.location.split(',')[0]}</span>
+                </div>
+                <h3 class="card-title">${event.name}</h3>
+                <span class="card-price">Rp ${new Intl.NumberFormat('id-ID').format(event.price)}</span>
+                
+                <a href="/event-detail.html?id=${event.id}" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">
+                    ${event.stock > 0 ? 'Book Ticket' : 'Details'}
+                </a>
+            </div>
         </div>
-      `;
-    }
-
-    function formatDate(dateString) {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
-      return new Date(dateString).toLocaleDateString('id-ID', options);
-    }
-
-    function formatPrice(price) {
-      return new Intl.NumberFormat('id-ID').format(price);
+        `;
     }
   </script>
 </body>
