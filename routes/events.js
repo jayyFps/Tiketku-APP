@@ -167,11 +167,17 @@ router.delete('/:id', authenticateAdmin, (req, res) => {
             return res.status(403).json({ error: 'You do not have permission to delete this event' });
         }
 
-        const sql = `DELETE FROM events WHERE id = ?`;
+        // First delete associated tickets
+        db.run('DELETE FROM tickets WHERE event_id = ?', [eventId], function (err) {
+            if (err) return res.status(500).json({ error: 'Database error deleting tickets: ' + err.message });
 
-        db.run(sql, [eventId], function (err) {
-            if (err) return res.status(500).json({ error: 'Database error: ' + err.message });
-            res.json({ message: 'Event deleted successfully' });
+            // Then delete the event
+            const sql = `DELETE FROM events WHERE id = ?`;
+
+            db.run(sql, [eventId], function (err) {
+                if (err) return res.status(500).json({ error: 'Database error deleting event: ' + err.message });
+                res.json({ message: 'Event and associated tickets deleted successfully' });
+            });
         });
     });
 });
