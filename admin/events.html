@@ -278,7 +278,8 @@
 
             try {
                 const response = await fetchWithAdminAuth(`/api/events/${id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: { 'Content-Type': null }
                 });
 
                 if (response.ok) {
