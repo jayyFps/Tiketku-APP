@@ -160,7 +160,7 @@ router.delete('/:id', authenticateAdmin, (req, res) => {
 
     // Check ownership
     db.get('SELECT admin_id FROM events WHERE id = ?', [eventId], (err, event) => {
-        if (err) return res.status(500).json({ error: 'Database error' });
+        if (err) return res.status(500).json({ error: 'Database error: ' + err.message });
         if (!event) return res.status(404).json({ error: 'Event not found' });
 
         if (event.admin_id && event.admin_id !== adminId) {
@@ -170,7 +170,7 @@ router.delete('/:id', authenticateAdmin, (req, res) => {
         const sql = `DELETE FROM events WHERE id = ?`;
 
         db.run(sql, [eventId], function (err) {
-            if (err) return res.status(500).json({ error: 'Database error' });
+            if (err) return res.status(500).json({ error: 'Database error: ' + err.message });
             res.json({ message: 'Event deleted successfully' });
         });
     });
