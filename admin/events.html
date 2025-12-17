@@ -286,7 +286,8 @@
                     showNotification('Event deleted', 'success');
                     await loadEvents();
                 } else {
-                    showNotification('Failed to delete event', 'error');
+                    const data = await response.json();
+                    showNotification(data.error || 'Failed to delete event', 'error');
                 }
             } catch (error) {
                 console.error('Error deleting event:', error);
